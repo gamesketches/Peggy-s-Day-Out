@@ -14,6 +14,7 @@ public class CharacterControl : MonoBehaviour {
 	bool grounded = false;
 	bool dragging = false;
 	Rigidbody rb;
+	Collider collider;
 	float spunDegrees = 0;
 	int points = 0;
 
@@ -21,16 +22,19 @@ public class CharacterControl : MonoBehaviour {
 	void Start () {
 		
 	rb = GetComponent<Rigidbody>();
+	collider = GetComponent<Collider>();
 	}
 	
 	// Update is called once per frame
 	void FixedUpdate () {
 		Vector3 jumpVector = new Vector3(0.0f, jumpPower, 0.0f);
+		RaycastHit hit;
+		Ray landingRay = new Ray(collider.bounds.center, Vector3.down);
 
-		if(grounded){
+		if(Physics.Raycast (landingRay, out hit, 3f)){
 			float horizontal = Input.GetAxis ("Horizontal");
 			float vertical = Input.GetAxis ("Vertical");
-			if(horizontal != 0 && 0 < vertical){
+			if(horizontal != 0){
 				if(!dragging) {
 					rb.velocity += new Vector3(0.0f, 3f, 0.0f);
 					dragging = true;
@@ -39,10 +43,8 @@ public class CharacterControl : MonoBehaviour {
 				float drag = vertical;
 				rb.drag = baseDrag + Mathf.Abs(rotation) + drag;
 				transform.Rotate(rotation, 0, 0);
-				rb.velocity = Quaternion.AngleAxis(rotation, Vector3.right) * rb.velocity;
+				rb.velocity = Quaternion.AngleAxis(rotation, Vector3.up) * rb.velocity;
 				if(Input.GetKeyUp(KeyCode.DownArrow)){
-					//rb.velocity = Vector3.Scale(rb.velocity, 
-					                //  new Vector3(turnBoost, turnBoost, turnBoost));
 					rb.AddRelativeForce(new Vector3(0.0f, rb.velocity.x, rb.velocity.z));
 					rb.drag = baseDrag;
 					dragging = false;
@@ -53,14 +55,13 @@ public class CharacterControl : MonoBehaviour {
 				if(horizontal != 0) {
 					rb.AddForce(new Vector3(0f, 0f, horizontal * strafeSpeed));
 		     	}
-		     	 if(vertical != 0) {
-			    	rb.drag = vertical;
-			    }
+			}
+			if(vertical != 0) {
+				rb.drag = vertical;
 			}
 			if(Input.GetButton("Jump")) {
 				rb.velocity += jumpVector;
 				grounded = false;
-				GetComponent<TrailRenderer>().enabled = false;
 			}
 			if(rb.velocity.magnitude > maxMagnitude) {
 				rb.velocity = Vector3.ClampMagnitude(rb.velocity, maxMagnitude);
@@ -75,13 +76,8 @@ public class CharacterControl : MonoBehaviour {
 			if((int)Mathf.Abs(spunDegrees) / 360 > 0){
 				Debug.Log(360 * (int)(Mathf.Abs(spunDegrees) / 360));
 			}
+			GetComponent<TrailRenderer>().enabled = false;
 		}
-		/*Vector3 moveDirection = new Vector3(Input.GetAxis("Horizontal") * 10.0f, 0,
-		                        Input.GetAxis("Vertical") * 10.0f);
-		moveDirection = transform.TransformDirection(moveDirection);
-
-		CharacterController controller = GetComponent<CharacterController>();
-		controller.Move(moveDirection * Time.deltaTime);*/
 		if(rb.position.x < 100) {
 			uiShit.GetComponentsInChildren<Text>()[1].text = "You win!";
 		}
