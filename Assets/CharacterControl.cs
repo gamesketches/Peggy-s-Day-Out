@@ -19,19 +19,18 @@ public class CharacterControl : MonoBehaviour {
 	int points = 0;
 	Text scoreText;
 	Text flavorText;
-	public Transform target;
 	private Quaternion _lookRotation;
-	private Vector3 _direction;
+	AudioSource snowSound;
 
 	// Use this for initialization
 	void Start () {
 		
 	rb = GetComponent<Rigidbody>();
 	collider = GetComponent<Collider>();
-		_direction = transform.up;
-		_lookRotation = transform.rotation;
+	_lookRotation = transform.rotation;
 	scoreText = uiShit.GetComponentInChildren<Text>();
 	flavorText = uiShit.GetComponentsInChildren<Text>()[1];
+	snowSound = GetComponent<AudioSource>();
 	}
 	
 	// Update is called once per frame
@@ -44,8 +43,6 @@ public class CharacterControl : MonoBehaviour {
 			if(flavorText.text != "You win!" && flavorText.text != "You Lose :("){
 				flavorText.text = "";
 			}
-			Debug.Log(transform.up);
-			//Debug.Break();
 			float horizontal = Input.GetAxis ("Horizontal");
 			float vertical = Input.GetAxis ("Vertical");
 			if(horizontal != 0){
@@ -66,21 +63,8 @@ public class CharacterControl : MonoBehaviour {
 				}
 			}
 			else {
-				Debug.Log("prelerp");
-				Debug.Log(transform.up);
-				Debug.Log (_direction);
-				//Debug.Break();
-				//transform.up = Vector3.Lerp(transform.up, _direction.normalized, Time.deltaTime);
 				transform.rotation = Quaternion.RotateTowards(transform.rotation, _lookRotation, Time.deltaTime * 30);
-				Debug.Log("postLerp");
-				Debug.Log (transform.rotation);
-
-		/*		Vector3 effectiveTarget = new Vector3(target.position.x, transform.position.y, transform.position.z);
-				_direction = (effectiveTarget - transform.position).normalized;
-				_lookRotation = Quaternion.LookRotation(_direction);
-				transform.rotation = Quaternion.Slerp(transform.rotation, _lookRotation,
-				                                      Time.deltaTime * rotationSpeed);*/
-			}
+				}
 			if(vertical != 0) {
 				rb.drag = vertical;
 			}
@@ -94,6 +78,7 @@ public class CharacterControl : MonoBehaviour {
 		}
 		// jumping code
 		else {
+			snowSound.Stop();
 			float rotation = Input.GetAxis ("Horizontal") * jumpRotationSpeed;
 			transform.Rotate (rotation, 0, 0);
 			rb.drag = baseDrag;
@@ -104,14 +89,10 @@ public class CharacterControl : MonoBehaviour {
 				if(flavorText.text != trickVal.ToString() && 
 				     flavorText.text != "You Win!" &&
 				     flavorText.text != "You Lose :("){
-					Debug.Log(flavorText.text);
-					Debug.Log(trickVal.ToString());
 					flavorText.text = trickVal.ToString();
 					getPoints(trickVal);
 				}
 
-				//uiShit.GetComponentsInChildren<Text>()[1].text = trickVal.ToString();
-				Debug.Log(360 * (int)(Mathf.Abs(spunDegrees) / 360));
 			}
 			GetComponent<TrailRenderer>().enabled = false;
 		}
@@ -129,6 +110,7 @@ public class CharacterControl : MonoBehaviour {
 			grounded = true;
 			spunDegrees = 0;
 			GetComponent<TrailRenderer>().enabled = true;
+			snowSound.Play();
 		}
 		else if(collision.gameObject.tag == "Finish"){
 			Debug.Log("You lose");
