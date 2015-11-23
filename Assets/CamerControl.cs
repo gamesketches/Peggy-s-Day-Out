@@ -6,6 +6,7 @@ public class CamerControl : MonoBehaviour {
 	public GameObject player;
 	
 	private Vector3 offset;
+	private Vector3 tempPosition;
 	private Quaternion lastRotation; 
 	private Collider collider;
 
@@ -19,6 +20,7 @@ public class CamerControl : MonoBehaviour {
 	
 	// Update is called once per frame
 	void LateUpdate () {
+		if(player.transform.position.y > -10){
 		transform.position = player.transform.position + offset;
 		RaycastHit hit;
 		Ray landingRay = new Ray(collider.bounds.center, Vector3.down);
@@ -29,6 +31,12 @@ public class CamerControl : MonoBehaviour {
 		// Else lock rotation
 		else {
 			transform.rotation = lastRotation;
+		}
+			tempPosition = transform.position;
+	 }
+		else {
+			transform.position = tempPosition;
+			transform.LookAt(player.transform);
 		}
 	}
 }

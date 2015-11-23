@@ -21,6 +21,7 @@ public class CharacterControl : MonoBehaviour {
 	Text flavorText;
 	private Quaternion _lookRotation;
 	AudioSource snowSound;
+	private ParticleSystem particles;
 
 	// Use this for initialization
 	void Start () {
@@ -30,6 +31,7 @@ public class CharacterControl : MonoBehaviour {
 	_lookRotation = transform.rotation;
 	scoreText = uiShit.GetComponentInChildren<Text>();
 	flavorText = uiShit.GetComponentsInChildren<Text>()[1];
+	particles = GetComponentInChildren<ParticleSystem>();
 	snowSound = GetComponent<AudioSource>();
 	}
 	
@@ -83,7 +85,6 @@ public class CharacterControl : MonoBehaviour {
 			transform.Rotate (rotation, 0, 0);
 			rb.drag = baseDrag;
 			spunDegrees += rotation;
-			Debug.Log ("jump is happening for some reason");
 			if((int)Mathf.Abs(spunDegrees) / 360 > 0){
 				int trickVal = 360 * (int)(Mathf.Abs(spunDegrees) / 360);
 				if(flavorText.text != trickVal.ToString() && 
@@ -94,7 +95,8 @@ public class CharacterControl : MonoBehaviour {
 				}
 
 			}
-			GetComponent<TrailRenderer>().enabled = false;
+			particles.Stop();
+			particles.Clear();
 		}
 		if(rb.position.x < 100) {
 			flavorText.text = "You Win!";
@@ -109,11 +111,12 @@ public class CharacterControl : MonoBehaviour {
 		if(collision.gameObject.tag == "Ground"){
 			grounded = true;
 			spunDegrees = 0;
-			GetComponent<TrailRenderer>().enabled = true;
+			particles.Play();
 			snowSound.Play();
 		}
 		else if(collision.gameObject.tag == "Finish"){
-			Debug.Log("You lose");
+			Debug.Log("you win");
+			maxMagnitude = 0;
 		}
 		else if(collision.gameObject.tag == "Coin"){
 			Debug.Log("lol");
