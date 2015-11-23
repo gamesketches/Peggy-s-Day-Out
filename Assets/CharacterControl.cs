@@ -22,6 +22,7 @@ public class CharacterControl : MonoBehaviour {
 	private Quaternion _lookRotation;
 	AudioSource snowSound;
 	private ParticleSystem particles;
+	public ParticleSystem coinSplash;
 
 	// Use this for initialization
 	void Start () {
@@ -55,8 +56,8 @@ public class CharacterControl : MonoBehaviour {
 				float rotation = horizontal * rotationSpeed;
 				float drag = vertical;
 				rb.drag = baseDrag + Mathf.Abs(rotation) + drag;
-				transform.Rotate(rotation, 0, 0);
-				rb.velocity = Quaternion.AngleAxis(rotation, Vector3.up) * rb.velocity;
+				transform.Rotate(0, 0, rotation);
+				rb.velocity = Quaternion.AngleAxis(rotation, Vector3.down) * rb.velocity;
 				if(Input.GetKeyUp(KeyCode.DownArrow)){
 					rb.AddRelativeForce(new Vector3(0.0f, rb.velocity.x, rb.velocity.z));
 					rb.drag = baseDrag;
@@ -82,7 +83,7 @@ public class CharacterControl : MonoBehaviour {
 		else {
 			snowSound.Stop();
 			float rotation = Input.GetAxis ("Horizontal") * jumpRotationSpeed;
-			transform.Rotate (rotation, 0, 0);
+			transform.Rotate (0, 0, rotation * -1);
 			rb.drag = baseDrag;
 			spunDegrees += rotation;
 			if((int)Mathf.Abs(spunDegrees) / 360 > 0){
@@ -96,7 +97,6 @@ public class CharacterControl : MonoBehaviour {
 
 			}
 			particles.Stop();
-			particles.Clear();
 		}
 		if(rb.position.x < 100) {
 			flavorText.text = "You Win!";
@@ -130,6 +130,7 @@ public class CharacterControl : MonoBehaviour {
 
 	void OnTriggerEnter(Collider collision) {
 		this.getPoints(100);
+		Instantiate(coinSplash, transform.position, Quaternion.identity);
 		Destroy(collision.gameObject);
 	}
 
