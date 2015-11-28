@@ -24,16 +24,20 @@ public class CamerControl : MonoBehaviour {
 		transform.position = player.transform.position + offset;
 		RaycastHit hit;
 		Ray landingRay = new Ray(collider.bounds.center, Vector3.down);
+		
 		// If grounded, follow player
 		if(Physics.Raycast(landingRay, out hit, 3f)) {
 			lastRotation = transform.rotation;
-		}
+		   }
 		// Else lock rotation
-		else {
+		   else {
 			transform.rotation = lastRotation;
-		}
-			tempPosition = transform.position;
-	 }
+				Debug.Log("airborne");
+				Debug.Log (transform.rotation.y);
+		   }
+		
+		tempPosition = transform.position;
+	    }
 		else {
 			transform.position = tempPosition;
 			transform.LookAt(player.transform);

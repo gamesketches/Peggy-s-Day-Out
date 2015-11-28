@@ -52,6 +52,7 @@ public class CharacterControl : MonoBehaviour {
 				if(!dragging) {
 					rb.velocity += new Vector3(0.0f, 3f, 0.0f);
 					dragging = true;
+					Debug.Log("we draggin");
 				}
 				float rotation = horizontal * rotationSpeed;
 				float drag = vertical;
@@ -68,9 +69,9 @@ public class CharacterControl : MonoBehaviour {
 			else {
 				transform.rotation = Quaternion.RotateTowards(transform.rotation, _lookRotation, Time.deltaTime * 30);
 				}
-			if(vertical != 0) {
+//			if(vertical != 0) {
 				rb.drag = vertical;
-			}
+//			}
 			if(Input.GetButton("Jump")) {
 				rb.velocity += jumpVector;
 				grounded = false;
@@ -115,7 +116,6 @@ public class CharacterControl : MonoBehaviour {
 			snowSound.Play();
 		}
 		else if(collision.gameObject.tag == "Finish"){
-			Debug.Log("you win");
 			maxMagnitude = 0;
 		}
 		else if(collision.gameObject.tag == "Coin"){
@@ -125,12 +125,11 @@ public class CharacterControl : MonoBehaviour {
 	public void getPoints(int pointsToAdd) {
 		points += pointsToAdd;
 		scoreText.text = points.ToString();
-		//uiShit.GetComponentInChildren<Text>().text = points.ToString();
 	}
 
 	void OnTriggerEnter(Collider collision) {
 		this.getPoints(100);
-		Instantiate(coinSplash, transform.position, Quaternion.identity);
+		Instantiate(coinSplash, transform.position, new Quaternion(90, 0, 0, 0));
 		Destroy(collision.gameObject);
 	}
 
