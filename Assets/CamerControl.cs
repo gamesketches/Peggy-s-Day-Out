@@ -32,8 +32,6 @@ public class CamerControl : MonoBehaviour {
 		// Else lock rotation
 		   else {
 			transform.rotation = lastRotation;
-				Debug.Log("airborne");
-				Debug.Log (transform.rotation.y);
 		   }
 		
 		tempPosition = transform.position;

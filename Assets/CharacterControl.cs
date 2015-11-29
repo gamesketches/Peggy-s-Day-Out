@@ -50,28 +50,26 @@ public class CharacterControl : MonoBehaviour {
 			float vertical = Input.GetAxis ("Vertical");
 			if(horizontal != 0){
 				if(!dragging) {
-					rb.velocity += new Vector3(0.0f, 3f, 0.0f);
+					rb.velocity += new Vector3(3f, 0.0f, 0.0f);
 					dragging = true;
 					Debug.Log("we draggin");
 				}
-				float rotation = horizontal * rotationSpeed;
+				float rotation = horizontal * rotationSpeed * -1;
 				float drag = vertical;
 				rb.drag = baseDrag + Mathf.Abs(rotation) + drag;
-				transform.Rotate(0, 0, rotation);
-				rb.velocity = Quaternion.AngleAxis(rotation, Vector3.down) * rb.velocity;
+				transform.Rotate(0, rotation, 0);
+				rb.velocity = Quaternion.AngleAxis(rotation, Vector3.up) * rb.velocity;
 				if(Input.GetKeyUp(KeyCode.DownArrow)){
 					rb.AddRelativeForce(new Vector3(0.0f, rb.velocity.x, rb.velocity.z));
 					rb.drag = baseDrag;
 					dragging = false;
 					Input.ResetInputAxes();
-				}
-			}
+				    }
+			     }
 			else {
-				transform.rotation = Quaternion.RotateTowards(transform.rotation, _lookRotation, Time.deltaTime * 30);
+			   transform.rotation = Quaternion.RotateTowards(transform.rotation, _lookRotation, Time.deltaTime * 30);
 				}
-//			if(vertical != 0) {
-				rb.drag = vertical;
-//			}
+			rb.drag = vertical;
 			if(Input.GetButton("Jump")) {
 				rb.velocity += jumpVector;
 				grounded = false;

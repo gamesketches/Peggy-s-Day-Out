@@ -14,6 +14,8 @@ ModelImporter:
     100012: Sphere.001
     100014: Sphere.002
     100016: Cylinder.001
+    100018: Cube
+    100020: Cube.002
     400000: Camera
     400002: Cone
     400004: Cylinder
@@ -23,24 +25,32 @@ ModelImporter:
     400012: Sphere.001
     400014: Sphere.002
     400016: Cylinder.001
+    400018: Cube
+    400020: Cube.002
     2300000: Cone
     2300002: Cylinder
     2300004: Sphere
     2300006: Sphere.001
     2300008: Sphere.002
     2300010: Cylinder.001
+    2300012: Cube
+    2300014: Cube.002
     3300000: Cone
     3300002: Cylinder
     3300004: Sphere
     3300006: Sphere.001
     3300008: Sphere.002
     3300010: Cylinder.001
+    3300012: Cube
+    3300014: Cube.002
     4300000: Sphere.002
     4300002: Sphere.001
     4300004: Cone
     4300006: Cylinder
     4300008: Sphere
     4300010: Cylinder.001
+    4300012: Cube
+    4300014: Cube.002
   materials:
     importMaterials: 1
     materialName: 0
