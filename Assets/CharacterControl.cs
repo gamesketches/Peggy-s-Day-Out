@@ -39,13 +39,19 @@ public class CharacterControl : MonoBehaviour {
 	// Update is called once per frame
 	void FixedUpdate () {
 		Vector3 jumpVector = new Vector3(0.0f, jumpPower, 0.0f);
-		RaycastHit hit;
+		RaycastHit hit, frontHit, backHit;
+		Vector3 pos = transform.position;
+		float offset = 0.5f;
 		Ray landingRay = new Ray(collider.bounds.center, Vector3.down);
+		Debug.DrawRay(collider.bounds.center, Vector3.down);
 
 		if(Physics.Raycast (landingRay, out hit, 3f)){
 			if(flavorText.text != "You win!" && flavorText.text != "You Lose :("){
 				flavorText.text = "";
 			}
+			Physics.Raycast(pos - offset * transform.forward, -Vector3.up, out backHit);
+			Physics.Raycast(pos + offset * transform.forward, -Vector3.up, out frontHit);
+			transform.forward = frontHit.point - backHit.point;
 			float horizontal = Input.GetAxis ("Horizontal");
 			float vertical = Input.GetAxis ("Vertical");
 			if(horizontal != 0){
@@ -67,7 +73,7 @@ public class CharacterControl : MonoBehaviour {
 				    }
 			     }
 			else {
-			   transform.rotation = Quaternion.RotateTowards(transform.rotation, _lookRotation, Time.deltaTime * 30);
+			   //transform.rotation = Quaternion.RotateTowards(transform.rotation, _lookRotation, Time.deltaTime * 30);
 				}
 			rb.drag = vertical;
 			if(Input.GetButton("Jump")) {
@@ -80,6 +86,7 @@ public class CharacterControl : MonoBehaviour {
 		}
 		// jumping code
 		else {
+			Debug.Log("in air");
 			snowSound.Stop();
 			float rotation = Input.GetAxis ("Horizontal") * jumpRotationSpeed;
 			transform.Rotate (0, 0, rotation * -1);
