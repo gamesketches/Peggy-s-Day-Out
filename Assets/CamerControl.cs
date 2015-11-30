@@ -4,41 +4,67 @@ using System.Collections;
 public class CamerControl : MonoBehaviour {
 
 	public GameObject player;
+	public Vector3 targetOffset;
 	
 	private Vector3 offset;
 	private Vector3 tempPosition;
 	private Quaternion lastRotation; 
 	private Collider collider;
+	private int intro;
 
 	// Use this for initialization
 	void Start () {
-		offset = transform.position - player.transform.position;
-
+		offset = targetOffset;//transform.position - player.transform.position;
+		Debug.Log(offset);
+		intro = 0;
 		collider = player.GetComponent<Collider>();
 		lastRotation = transform.rotation;
 	}
 	
 	// Update is called once per frame
 	void LateUpdate () {
-		if(player.transform.position.y > -10){
-		transform.position = player.transform.position + offset;
-		RaycastHit hit;
-		Ray landingRay = new Ray(collider.bounds.center, Vector3.down);
-		
-		// If grounded, follow player
-		if(Physics.Raycast(landingRay, out hit, 3f)) {
-			lastRotation = transform.rotation;
-		   }
-		// Else lock rotation
-		   else {
-			transform.rotation = lastRotation;
-		   }
-		
-		tempPosition = transform.position;
-	    }
-		else {
-			transform.position = tempPosition;
+		if(intro > 1){
+			if(player.transform.position.y > -10){
+			transform.position = player.transform.position + offset;
+			RaycastHit hit;
+			Ray landingRay = new Ray(collider.bounds.center, Vector3.down);
+			
+			// If grounded, follow player
+			if(Physics.Raycast(landingRay, out hit, 3f)) {
+				lastRotation = transform.rotation;
+			   }
+			// Else lock rotation
+			   else {
+				transform.rotation = lastRotation;
+			   }
+			
+			tempPosition = transform.position;
+		    }
+			else {
+				transform.position = tempPosition;
+				transform.LookAt(player.transform);
+			}
+	}
+	else if(intro > 0) {
 			transform.LookAt(player.transform);
+			transform.Translate(Vector3.right * Time.deltaTime);
+			Vector3 targetPosition = player.transform.position + targetOffset;
+			transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime);
+			Vector3 newOffset = transform.position - player.transform.position;
+			if( newOffset.y >= targetOffset.y){
+				intro++;
+				transform.LookAt(player.transform.position);
+				offset = newOffset;
+			}
 		}
+	else {
+			if(Input.anyKeyDown) {
+			intro += 1;
+			}
+		}
+	}
+
+	public bool haveWeStartedYet() {
+		return intro > 0;
 	}
 }

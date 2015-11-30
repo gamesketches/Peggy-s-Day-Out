@@ -20,6 +20,8 @@ public class CharacterControl : MonoBehaviour {
 	Text scoreText;
 	Text flavorText;
 	private Quaternion _lookRotation;
+	private bool gameStarted;
+	private Vector3 startingPosition;
 	AudioSource snowSound;
 	private ParticleSystem particles;
 	public ParticleSystem coinSplash;
@@ -28,87 +30,103 @@ public class CharacterControl : MonoBehaviour {
 	void Start () {
 		
 	rb = GetComponent<Rigidbody>();
+	rb.isKinematic = true;
 	collider = GetComponent<Collider>();
 	_lookRotation = transform.rotation;
 	scoreText = uiShit.GetComponentInChildren<Text>();
 	flavorText = uiShit.GetComponentsInChildren<Text>()[1];
 	particles = GetComponentInChildren<ParticleSystem>();
+	particles.Stop();
 	snowSound = GetComponent<AudioSource>();
+	gameStarted = false;
 	}
 	
 	// Update is called once per frame
 	void FixedUpdate () {
-		Vector3 jumpVector = new Vector3(0.0f, jumpPower, 0.0f);
-		RaycastHit hit, frontHit, backHit;
-		Vector3 pos = transform.position;
-		float offset = 0.5f;
-		Ray landingRay = new Ray(collider.bounds.center, Vector3.down);
-		Debug.DrawRay(collider.bounds.center, Vector3.down);
+		if(gameStarted){
+			Vector3 jumpVector = new Vector3(0.0f, jumpPower, 0.0f);
+			RaycastHit hit, frontHit, backHit;
+			Vector3 pos = transform.position;
+			float offset = 0.5f;
+			Ray landingRay = new Ray(collider.bounds.center, Vector3.down);
+			Debug.DrawRay(collider.bounds.center, Vector3.down);
 
-		if(Physics.Raycast (landingRay, out hit, 3f)){
-			if(flavorText.text != "You win!" && flavorText.text != "You Lose :("){
-				flavorText.text = "";
-			}
-			Physics.Raycast(pos - offset * transform.forward, -Vector3.up, out backHit);
-			Physics.Raycast(pos + offset * transform.forward, -Vector3.up, out frontHit);
-			transform.forward = frontHit.point - backHit.point;
-			float horizontal = Input.GetAxis ("Horizontal");
-			float vertical = Input.GetAxis ("Vertical");
-			if(horizontal != 0){
-				if(!dragging) {
-					rb.velocity += new Vector3(3f, 0.0f, 0.0f);
-					dragging = true;
-					Debug.Log("we draggin");
+			if(Physics.Raycast (landingRay, out hit, 3f)){
+				if(flavorText.text != "You win!" && flavorText.text != "You Lose :("){
+					flavorText.text = "";
 				}
-				float rotation = horizontal * rotationSpeed * -1;
-				float drag = vertical;
-				rb.drag = baseDrag + Mathf.Abs(rotation) + drag;
-				transform.Rotate(0, rotation, 0);
-				rb.velocity = Quaternion.AngleAxis(rotation, Vector3.up) * rb.velocity;
-				if(Input.GetKeyUp(KeyCode.DownArrow)){
-					rb.AddRelativeForce(new Vector3(0.0f, rb.velocity.x, rb.velocity.z));
-					rb.drag = baseDrag;
-					dragging = false;
-					Input.ResetInputAxes();
-				    }
-			     }
+				Physics.Raycast(pos - offset * transform.forward, -Vector3.up, out backHit);
+				Physics.Raycast(pos + offset * transform.forward, -Vector3.up, out frontHit);
+				transform.forward = frontHit.point - backHit.point;
+				float horizontal = Input.GetAxis ("Horizontal");
+				float vertical = Input.GetAxis ("Vertical");
+				if(horizontal != 0){
+					if(!dragging) {
+						rb.velocity += new Vector3(3f, 0.0f, 0.0f);
+						dragging = true;
+						Debug.Log("we draggin");
+					}
+					float rotation = horizontal * rotationSpeed * -1;
+					float drag = vertical;
+					rb.drag = baseDrag + Mathf.Abs(rotation) + drag;
+					transform.Rotate(0, rotation, 0);
+					rb.velocity = Quaternion.AngleAxis(rotation, Vector3.up) * rb.velocity;
+					if(Input.GetKeyUp(KeyCode.DownArrow)){
+						rb.AddRelativeForce(new Vector3(0.0f, rb.velocity.x, rb.velocity.z));
+						rb.drag = baseDrag;
+						dragging = false;
+						Input.ResetInputAxes();
+					    }
+				     }
+				else {
+				   //transform.rotation = Quaternion.RotateTowards(transform.rotation, _lookRotation, Time.deltaTime * 30);
+					}
+				rb.drag = vertical;
+				if(Input.GetButton("Jump")) {
+					rb.velocity += jumpVector;
+					grounded = false;
+				}
+				if(rb.velocity.magnitude > maxMagnitude) {
+					rb.velocity = Vector3.ClampMagnitude(rb.velocity, maxMagnitude);
+				}
+			}
+			// jumping code
 			else {
-			   //transform.rotation = Quaternion.RotateTowards(transform.rotation, _lookRotation, Time.deltaTime * 30);
+				//Debug.Log("in air");
+				snowSound.Stop();
+				float rotation = Input.GetAxis ("Horizontal") * jumpRotationSpeed;
+				transform.Rotate (0, 0, rotation * -1);
+				rb.drag = baseDrag;
+				spunDegrees += rotation;
+				if((int)Mathf.Abs(spunDegrees) / 360 > 0){
+					int trickVal = 360 * (int)(Mathf.Abs(spunDegrees) / 360);
+					if(flavorText.text != trickVal.ToString() && 
+					     flavorText.text != "You Win!" &&
+					     flavorText.text != "You Lose :("){
+						flavorText.text = trickVal.ToString();
+						getPoints(trickVal);
+					}
+
 				}
-			rb.drag = vertical;
-			if(Input.GetButton("Jump")) {
-				rb.velocity += jumpVector;
-				grounded = false;
+				particles.Stop();
 			}
-			if(rb.velocity.magnitude > maxMagnitude) {
-				rb.velocity = Vector3.ClampMagnitude(rb.velocity, maxMagnitude);
+			if(rb.position.x < 100) {
+				flavorText.text = "You Win!";
+			}
+			else if(rb.position.y < -10) {
+				flavorText.text = "You Lose :(";
 			}
 		}
-		// jumping code
 		else {
-			Debug.Log("in air");
-			snowSound.Stop();
-			float rotation = Input.GetAxis ("Horizontal") * jumpRotationSpeed;
-			transform.Rotate (0, 0, rotation * -1);
-			rb.drag = baseDrag;
-			spunDegrees += rotation;
-			if((int)Mathf.Abs(spunDegrees) / 360 > 0){
-				int trickVal = 360 * (int)(Mathf.Abs(spunDegrees) / 360);
-				if(flavorText.text != trickVal.ToString() && 
-				     flavorText.text != "You Win!" &&
-				     flavorText.text != "You Lose :("){
-					flavorText.text = trickVal.ToString();
-					getPoints(trickVal);
-				}
+			CamerControl camera = GameObject.Find("Main Camera").GetComponent<CamerControl>();
+			if(camera.haveWeStartedYet()) {
+				rb.isKinematic = false;
+				gameStarted = true;
+				Text[] mates = uiShit.GetComponentsInChildren<Text>();
+				mates[2].text = "";
+				mates[3].text = "";
 
 			}
-			particles.Stop();
-		}
-		if(rb.position.x < 100) {
-			flavorText.text = "You Win!";
-		}
-		else if(rb.position.y < -10) {
-			flavorText.text = "You Lose :(";
 		}
 	}
 
