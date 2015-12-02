@@ -23,6 +23,7 @@ public class CharacterControl : MonoBehaviour {
 	private bool gameStarted;
 	private Vector3 startingPosition;
 	AudioSource snowSound;
+	AudioSource chirpSound;
 	private ParticleSystem particles;
 	public ParticleSystem coinSplash;
 
@@ -37,7 +38,8 @@ public class CharacterControl : MonoBehaviour {
 	flavorText = uiShit.GetComponentsInChildren<Text>()[1];
 	particles = GetComponentInChildren<ParticleSystem>();
 	particles.Stop();
-	snowSound = GetComponent<AudioSource>();
+	snowSound = GetComponents<AudioSource>()[1];
+	chirpSound = GetComponents<AudioSource>()[0];
 	gameStarted = false;
 	}
 	
@@ -105,15 +107,13 @@ public class CharacterControl : MonoBehaviour {
 					     flavorText.text != "You Lose :("){
 						flavorText.text = trickVal.ToString();
 						getPoints(trickVal);
+						chirpSound.Play();
 					}
 
 				}
 				particles.Stop();
 			}
-			if(rb.position.x < 100) {
-				flavorText.text = "You Win!";
-			}
-			else if(rb.position.y < -10) {
+			if(rb.position.y < -10) {
 				flavorText.text = "You Lose :(";
 			}
 		}
@@ -140,6 +140,7 @@ public class CharacterControl : MonoBehaviour {
 		}
 		else if(collision.gameObject.tag == "Finish"){
 			maxMagnitude = 0;
+			flavorText.text = "You Win!";
 		}
 		else if(collision.gameObject.tag == "Coin"){
 			Debug.Log("lol");
