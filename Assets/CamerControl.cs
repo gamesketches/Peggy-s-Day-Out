@@ -60,6 +60,7 @@ public class CamerControl : MonoBehaviour {
 	else {
 			if(Input.anyKeyDown) {
 			intro += 1;
+			GetComponent<AudioSource>().Play();
 			}
 		}
 	}
