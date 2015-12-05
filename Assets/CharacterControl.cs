@@ -11,7 +11,6 @@ public class CharacterControl : MonoBehaviour {
 	public float baseDrag;
 	public float maxMagnitude;
 	public float turnBoost;
-	bool grounded = false;
 	bool dragging = false;
 	Rigidbody rb;
 	Collider collider;
@@ -86,7 +85,6 @@ public class CharacterControl : MonoBehaviour {
 				rb.drag = vertical;
 				if(Input.GetButton("Jump")) {
 					rb.velocity += jumpVector;
-					grounded = false;
 				}
 				if(rb.velocity.magnitude > maxMagnitude) {
 					rb.velocity = Vector3.ClampMagnitude(rb.velocity, maxMagnitude);
@@ -125,7 +123,7 @@ public class CharacterControl : MonoBehaviour {
 				Text[] mates = uiShit.GetComponentsInChildren<Text>();
 				mates[2].text = "";
 				mates[3].text = "";
-
+				scoreText.text = "0";
 			}
 		}
 	}
@@ -133,10 +131,11 @@ public class CharacterControl : MonoBehaviour {
 	void OnCollisionEnter (Collision collision)
 	{
 		if(collision.gameObject.tag == "Ground"){
-			grounded = true;
 			spunDegrees = 0;
 			particles.Play();
-			snowSound.Play();
+			if(!snowSound.isPlaying){
+				snowSound.Play();
+			}
 		}
 		else if(collision.gameObject.tag == "Finish"){
 			maxMagnitude = 0;
