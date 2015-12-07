@@ -23,6 +23,7 @@ public class CharacterControl : MonoBehaviour {
 	private Vector3 startingPosition;
 	AudioSource snowSound;
 	AudioSource chirpSound;
+	AudioSource landSound;
 	private ParticleSystem particles;
 	public ParticleSystem coinSplash;
 
@@ -39,6 +40,7 @@ public class CharacterControl : MonoBehaviour {
 	particles.Stop();
 	snowSound = GetComponents<AudioSource>()[1];
 	chirpSound = GetComponents<AudioSource>()[0];
+	landSound = GetComponents<AudioSource>()[2];
 	gameStarted = false;
 	}
 	
@@ -135,6 +137,7 @@ public class CharacterControl : MonoBehaviour {
 			particles.Play();
 			if(!snowSound.isPlaying){
 				snowSound.Play();
+				landSound.Play();
 			}
 		}
 		else if(collision.gameObject.tag == "Finish"){
