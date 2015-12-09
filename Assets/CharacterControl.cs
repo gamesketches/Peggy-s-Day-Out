@@ -18,7 +18,6 @@ public class CharacterControl : MonoBehaviour {
 	int points = 0;
 	Text scoreText;
 	Text flavorText;
-	private Quaternion _lookRotation;
 	private bool gameStarted;
 	private Vector3 startingPosition;
 	private int idleFrames;
@@ -34,7 +33,6 @@ public class CharacterControl : MonoBehaviour {
 	rb = GetComponent<Rigidbody>();
 	rb.isKinematic = true;
 	collider = GetComponent<Collider>();
-	_lookRotation = transform.rotation;
 	scoreText = uiShit.GetComponentInChildren<Text>();
 	flavorText = uiShit.GetComponentsInChildren<Text>()[1];
 	particles = GetComponentInChildren<ParticleSystem>();
@@ -49,6 +47,8 @@ public class CharacterControl : MonoBehaviour {
 	// Update is called once per frame
 	void FixedUpdate () {
 		if(gameStarted){
+			particles.emissionRate = 20 + rb.velocity.magnitude;
+			particles.gravityModifier = (rb.velocity.magnitude / 60.0f) * -1;
 			Vector3 jumpVector = new Vector3(0.0f, jumpPower, 0.0f);
 			RaycastHit hit, frontHit, backHit;
 			Vector3 pos = transform.position;
