@@ -21,6 +21,7 @@ public class CharacterControl : MonoBehaviour {
 	private Quaternion _lookRotation;
 	private bool gameStarted;
 	private Vector3 startingPosition;
+	private int idleFrames;
 	AudioSource snowSound;
 	AudioSource chirpSound;
 	AudioSource landSound;
@@ -42,6 +43,7 @@ public class CharacterControl : MonoBehaviour {
 	chirpSound = GetComponents<AudioSource>()[0];
 	landSound = GetComponents<AudioSource>()[2];
 	gameStarted = false;
+	idleFrames = 0;
 	}
 	
 	// Update is called once per frame
@@ -55,7 +57,7 @@ public class CharacterControl : MonoBehaviour {
 			Debug.DrawRay(collider.bounds.center, Vector3.down);
 
 			if(Physics.Raycast (landingRay, out hit, 3f)){
-				if(flavorText.text != "You win!" && flavorText.text != "You Lose :("){
+				if(flavorText.text != "You Win!" && flavorText.text != "You Lose :("){
 					flavorText.text = "";
 				}
 				Physics.Raycast(pos - offset * transform.forward, -Vector3.up, out backHit);
@@ -64,6 +66,7 @@ public class CharacterControl : MonoBehaviour {
 				float horizontal = Input.GetAxis ("Horizontal");
 				float vertical = Input.GetAxis ("Vertical");
 				if(horizontal != 0){
+					idleFrames = 0;
 					if(!dragging) {
 						rb.velocity += new Vector3(3f, 0.0f, 0.0f);
 						dragging = true;
@@ -82,7 +85,17 @@ public class CharacterControl : MonoBehaviour {
 					    }
 				     }
 				else {
-				   //transform.rotation = Quaternion.RotateTowards(transform.rotation, _lookRotation, Time.deltaTime * 30);
+					idleFrames++;
+
+					if(idleFrames > 10){
+						Vector3 bra = Vector3.Cross(backHit.normal, Vector3.down);
+						bra = Vector3.Cross(backHit.normal, bra);
+
+						if(bra != Vector3.zero){
+							transform.forward = Vector3.RotateTowards(transform.forward, bra * -1,
+							                                          Time.deltaTime * rotationSpeed * -1, 1);
+								}
+						}
 					}
 				rb.drag = vertical;
 				if(Input.GetButton("Jump")) {
@@ -116,6 +129,11 @@ public class CharacterControl : MonoBehaviour {
 			if(rb.position.y < -10) {
 				flavorText.text = "You Lose :(";
 			}
+			if(flavorText.text == "You Lose :(" || flavorText.text == "You Win!") {
+				if(Input.anyKey){
+					Application.LoadLevel(Application.loadedLevel);
+				}
+			}
 		}
 		else {
 			CamerControl camera = GameObject.Find("Main Camera").GetComponent<CamerControl>();
@@ -143,6 +161,7 @@ public class CharacterControl : MonoBehaviour {
 		else if(collision.gameObject.tag == "Finish"){
 			maxMagnitude = 0;
 			flavorText.text = "You Win!";
+
 		}
 		else if(collision.gameObject.tag == "Coin"){
 			Debug.Log("lol");
