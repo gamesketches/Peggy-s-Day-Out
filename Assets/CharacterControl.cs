@@ -21,6 +21,7 @@ public class CharacterControl : MonoBehaviour {
 	private bool gameStarted;
 	private Vector3 startingPosition;
 	private int idleFrames;
+	private int airFrames;
 	AudioSource snowSound;
 	AudioSource chirpSound;
 	AudioSource landSound;
@@ -42,6 +43,7 @@ public class CharacterControl : MonoBehaviour {
 	landSound = GetComponents<AudioSource>()[2];
 	gameStarted = false;
 	idleFrames = 0;
+	airFrames = 0;
 	}
 	
 	// Update is called once per frame
@@ -49,7 +51,7 @@ public class CharacterControl : MonoBehaviour {
 		if(gameStarted){
 			particles.emissionRate = 20 + rb.velocity.magnitude;
 			particles.gravityModifier = (rb.velocity.magnitude / 60.0f) * -1;
-			Vector3 jumpVector = new Vector3(0.0f, jumpPower, 0.0f);
+			Vector3 jumpVector = new Vector3(-jumpPower, jumpPower, 0.0f);
 			RaycastHit hit, frontHit, backHit;
 			Vector3 pos = transform.position;
 			float offset = 0.5f;
@@ -70,7 +72,6 @@ public class CharacterControl : MonoBehaviour {
 					if(!dragging) {
 						rb.velocity += new Vector3(3f, 0.0f, 0.0f);
 						dragging = true;
-						Debug.Log("we draggin");
 					}
 					float rotation = horizontal * rotationSpeed * -1;
 					float drag = vertical;
@@ -83,18 +84,13 @@ public class CharacterControl : MonoBehaviour {
 						dragging = false;
 						Input.ResetInputAxes();
 					    }
+					alignWithHill(backHit);
 				     }
 				else {
 					idleFrames++;
 
 					if(idleFrames > 10){
-						Vector3 bra = Vector3.Cross(backHit.normal, Vector3.down);
-						bra = Vector3.Cross(backHit.normal, bra);
-
-						if(bra != Vector3.zero){
-							transform.forward = Vector3.RotateTowards(transform.forward, bra * -1,
-							                                          Time.deltaTime * rotationSpeed * -1, 1);
-								}
+						alignWithHill(backHit);
 						}
 					}
 				rb.drag = vertical;
@@ -107,7 +103,7 @@ public class CharacterControl : MonoBehaviour {
 			}
 			// jumping code
 			else {
-				//Debug.Log("in air");
+				airFrames += 1;
 				snowSound.Stop();
 				float rotation = Input.GetAxis ("Horizontal") * jumpRotationSpeed;
 				transform.Rotate (0, 0, rotation * -1);
@@ -128,9 +124,10 @@ public class CharacterControl : MonoBehaviour {
 			}
 			if(rb.position.y < -10) {
 				flavorText.text = "You Lose :(";
+				uiShit.GetComponentsInChildren<Text>()[3].text = "Press R to Reset";
 			}
 			if(flavorText.text == "You Lose :(" || flavorText.text == "You Win!") {
-				if(Input.anyKey){
+				if(Input.GetKey("r")){
 					Application.LoadLevel(Application.loadedLevel);
 				}
 			}
@@ -155,16 +152,16 @@ public class CharacterControl : MonoBehaviour {
 			particles.Play();
 			if(!snowSound.isPlaying){
 				snowSound.Play();
+				landSound.volume = airFrames / 70f;
 				landSound.Play();
 			}
+			airFrames = 0;
 		}
 		else if(collision.gameObject.tag == "Finish"){
 			maxMagnitude = 0;
 			flavorText.text = "You Win!";
+			uiShit.GetComponentsInChildren<Text>()[3].text = "Press R to Reset";
 
-		}
-		else if(collision.gameObject.tag == "Coin"){
-			Debug.Log("lol");
 		}
 	}
 	public void getPoints(int pointsToAdd) {
@@ -178,5 +175,14 @@ public class CharacterControl : MonoBehaviour {
 		Destroy(collision.gameObject);
 	}
 
+	void alignWithHill(RaycastHit backHit){
+		Vector3 normalcy = Vector3.Cross(backHit.normal, Vector3.down);
+		normalcy = Vector3.Cross(backHit.normal, normalcy);
+		
+		if(normalcy != Vector3.zero){
+			transform.forward = Vector3.RotateTowards(transform.forward, normalcy * -1,
+			                                          Time.deltaTime * rotationSpeed * -1, 1);
+		}
+	}
 
 }
