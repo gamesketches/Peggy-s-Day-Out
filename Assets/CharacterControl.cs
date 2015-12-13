@@ -25,6 +25,7 @@ public class CharacterControl : MonoBehaviour {
 	AudioSource snowSound;
 	AudioSource chirpSound;
 	AudioSource landSound;
+	AudioSource chimeSound;
 	private ParticleSystem particles;
 	public ParticleSystem coinSplash;
 
@@ -41,6 +42,7 @@ public class CharacterControl : MonoBehaviour {
 	snowSound = GetComponents<AudioSource>()[1];
 	chirpSound = GetComponents<AudioSource>()[0];
 	landSound = GetComponents<AudioSource>()[2];
+	chimeSound = GetComponents<AudioSource>()[3];
 	gameStarted = false;
 	idleFrames = 0;
 	airFrames = 0;
@@ -49,6 +51,9 @@ public class CharacterControl : MonoBehaviour {
 	// Update is called once per frame
 	void FixedUpdate () {
 		if(gameStarted){
+			if(Input.GetKey("r")){
+				Application.LoadLevel(Application.loadedLevel);
+			}
 			particles.emissionRate = 20 + rb.velocity.magnitude;
 			particles.gravityModifier = (rb.velocity.magnitude / 60.0f) * -1;
 			Vector3 jumpVector = new Vector3(-jumpPower, jumpPower, 0.0f);
@@ -67,7 +72,7 @@ public class CharacterControl : MonoBehaviour {
 				transform.forward = frontHit.point - backHit.point;
 				float horizontal = Input.GetAxis ("Horizontal");
 				float vertical = Input.GetAxis ("Vertical");
-				if(horizontal != 0){
+				if(horizontal != 0 || vertical != 0){
 					idleFrames = 0;
 					if(!dragging) {
 						rb.velocity += new Vector3(3f, 0.0f, 0.0f);
@@ -84,16 +89,16 @@ public class CharacterControl : MonoBehaviour {
 						dragging = false;
 						Input.ResetInputAxes();
 					    }
-					alignWithHill(backHit);
+					alignWithHill(backHit, -.4f);
 				     }
 				else {
 					idleFrames++;
 
 					if(idleFrames > 10){
-						alignWithHill(backHit);
+						alignWithHill(backHit, -1f);
 						}
 					}
-				rb.drag = vertical;
+				rb.drag = vertical / 5.0f;
 				if(Input.GetButton("Jump")) {
 					rb.velocity += jumpVector;
 				}
@@ -125,11 +130,6 @@ public class CharacterControl : MonoBehaviour {
 			if(rb.position.y < -10) {
 				flavorText.text = "You Lose :(";
 				uiShit.GetComponentsInChildren<Text>()[3].text = "Press R to Reset";
-			}
-			if(flavorText.text == "You Lose :(" || flavorText.text == "You Win!") {
-				if(Input.GetKey("r")){
-					Application.LoadLevel(Application.loadedLevel);
-				}
 			}
 		}
 		else {
@@ -173,16 +173,23 @@ public class CharacterControl : MonoBehaviour {
 		this.getPoints(100);
 		Instantiate(coinSplash, transform.position, new Quaternion(90, 0, 0, 0));
 		Destroy(collision.gameObject);
+		chimeSound.Play();
+		
 	}
 
-	void alignWithHill(RaycastHit backHit){
+	void alignWithHill(RaycastHit backHit, float hillPower){
 		Vector3 normalcy = Vector3.Cross(backHit.normal, Vector3.down);
 		normalcy = Vector3.Cross(backHit.normal, normalcy);
 		
 		if(normalcy != Vector3.zero){
 			transform.forward = Vector3.RotateTowards(transform.forward, normalcy * -1,
-			                                          Time.deltaTime * rotationSpeed * -1, 1);
+			                                          Time.deltaTime * rotationSpeed * hillPower, 1);
 		}
+		else{
+			transform.forward = Vector3.RotateTowards(transform.forward, Vector3.left,
+			                                          Time.deltaTime * rotationSpeed * hillPower, 1);
+		}
+		rb.AddForce(normalcy * -10);
 	}
 
 }
