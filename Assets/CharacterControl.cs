@@ -13,6 +13,7 @@ public class CharacterControl : MonoBehaviour {
 	public float turnBoost;
 	bool dragging = false;
 	Rigidbody rb;
+	public Transform head;
 	Collider collider;
 	float spunDegrees = 0;
 	int points = 0;
@@ -67,6 +68,7 @@ public class CharacterControl : MonoBehaviour {
 				if(flavorText.text != "You Win!" && flavorText.text != "You Lose :("){
 					flavorText.text = "";
 				}
+				head.localEulerAngles = new Vector3(284.335f, 6.03408f, 43.6937f);
 				Physics.Raycast(pos - offset * transform.forward, -Vector3.up, out backHit);
 				Physics.Raycast(pos + offset * transform.forward, -Vector3.up, out frontHit);
 				transform.forward = frontHit.point - backHit.point;
@@ -100,7 +102,9 @@ public class CharacterControl : MonoBehaviour {
 					}
 				rb.drag = vertical / 5.0f;
 				if(Input.GetButton("Jump")) {
-					rb.velocity += jumpVector;
+					Vector3 tempVector = Quaternion.Euler(0, -270, 0) * jumpVector;
+					tempVector = transform.rotation * tempVector;
+					rb.velocity += tempVector;
 				}
 				if(rb.velocity.magnitude > maxMagnitude) {
 					rb.velocity = Vector3.ClampMagnitude(rb.velocity, maxMagnitude);
@@ -108,6 +112,7 @@ public class CharacterControl : MonoBehaviour {
 			}
 			// jumping code
 			else {
+				head.localEulerAngles = new Vector3(357.948f, 359.016f, 48.0690f);
 				airFrames += 1;
 				snowSound.Stop();
 				float rotation = Input.GetAxis ("Horizontal") * jumpRotationSpeed;
