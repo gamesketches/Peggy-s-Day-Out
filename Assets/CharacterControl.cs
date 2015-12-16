@@ -28,6 +28,7 @@ public class CharacterControl : MonoBehaviour {
 	AudioSource landSound;
 	AudioSource chimeSound;
 	private ParticleSystem particles;
+	public ParticleSystem landingParticles;
 	public ParticleSystem coinSplash;
 
 	// Use this for initialization
@@ -57,6 +58,7 @@ public class CharacterControl : MonoBehaviour {
 			}
 			particles.emissionRate = 20 + rb.velocity.magnitude;
 			particles.gravityModifier = (rb.velocity.magnitude / 60.0f) * -1;
+			Debug.Log(particles.emissionRate);
 			Vector3 jumpVector = new Vector3(-jumpPower, jumpPower, 0.0f);
 			RaycastHit hit, frontHit, backHit;
 			Vector3 pos = transform.position;
@@ -74,6 +76,10 @@ public class CharacterControl : MonoBehaviour {
 				transform.forward = frontHit.point - backHit.point;
 				float horizontal = Input.GetAxis ("Horizontal");
 				float vertical = Input.GetAxis ("Vertical");
+				Vector3 tempRotation = transform.rotation.eulerAngles;
+				tempRotation.y -= 270;
+				tempRotation = Quaternion.Euler(tempRotation) * rb.velocity; //tempRotation;
+				float dotProduct = Vector3.Dot(rb.velocity.normalized, transform.forward.normalized);
 				if(horizontal != 0 || vertical != 0){
 					idleFrames = 0;
 					if(!dragging) {
@@ -82,22 +88,25 @@ public class CharacterControl : MonoBehaviour {
 					}
 					float rotation = horizontal * rotationSpeed * -1;
 					float drag = vertical;
-					rb.drag = baseDrag + Mathf.Abs(rotation) + drag;
+					rb.drag = -1 * dotProduct;//baseDrag + Mathf.Abs(rotation) + drag;
 					transform.Rotate(0, rotation, 0);
-					rb.velocity = Quaternion.AngleAxis(rotation, Vector3.up) * rb.velocity;
+					if(dotProduct < 0.0f) {
+						dotProduct = 0.0f;
+					}
+					rb.velocity = Vector3.RotateTowards(rb.velocity, tempRotation, .01f, 1);
 					if(Input.GetKeyUp(KeyCode.DownArrow)){
 						rb.AddRelativeForce(new Vector3(0.0f, rb.velocity.x, rb.velocity.z));
 						rb.drag = baseDrag;
 						dragging = false;
 						Input.ResetInputAxes();
 					    }
-					alignWithHill(backHit, -.4f);
+					alignWithHill(backHit, -.1f);
 				     }
 				else {
 					idleFrames++;
 
 					if(idleFrames > 10){
-						alignWithHill(backHit, -1f);
+						alignWithHill(backHit, -0.5f);
 						}
 					}
 				rb.drag = vertical / 5.0f;
@@ -106,9 +115,13 @@ public class CharacterControl : MonoBehaviour {
 					tempVector = transform.rotation * tempVector;
 					rb.velocity += tempVector;
 				}
-				if(rb.velocity.magnitude > maxMagnitude) {
-					rb.velocity = Vector3.ClampMagnitude(rb.velocity, maxMagnitude);
+				if(rb.velocity.magnitude > maxMagnitude * dotProduct) {
+					rb.velocity = Vector3.ClampMagnitude(rb.velocity, maxMagnitude * dotProduct);
 				}
+						float dragFactor = -0.0001f;
+						float howPerpendicular = Mathf.Abs (Vector3.Dot(-rb.velocity, transform.right));
+						Vector3 dragVector =  dragFactor * howPerpendicular * rb.velocity.sqrMagnitude * transform.right;
+						rb.AddForce(dragVector);
 			}
 			// jumping code
 			else {
@@ -152,13 +165,16 @@ public class CharacterControl : MonoBehaviour {
 
 	void OnCollisionEnter (Collision collision)
 	{
-		if(collision.gameObject.tag == "Ground"){
+		if(collision.gameObject.tag == "Ground" && rb.velocity.y <= 0){
 			spunDegrees = 0;
 			particles.Play();
 			if(!snowSound.isPlaying){
 				snowSound.Play();
 				landSound.volume = airFrames / 70f;
 				landSound.Play();
+				Vector3 particlePosition = transform.position;
+				particlePosition.y -= 20;
+				Instantiate(landingParticles, transform.position, new Quaternion(0, 180, 180, 0));
 			}
 			airFrames = 0;
 		}
@@ -181,6 +197,27 @@ public class CharacterControl : MonoBehaviour {
 		chimeSound.Play();
 		
 	}
+
+	/*void OnDrawGizmos(){
+
+		Gizmos.color = Color.red;
+		Gizmos.DrawRay(transform.position,transform.forward);
+
+		Gizmos.color = Color.green;
+		//Gizmos.DrawRay(transform.position,rb.velocity.normalized);
+
+		float drag = -0.0001f;
+		float howPerpendicular = Mathf.Abs (Vector3.Dot(-rb.velocity, transform.right));
+		Vector3 dragVector =  drag * howPerpendicular * rb.velocity.sqrMagnitude * transform.right;
+
+		Gizmos.color = Color.blue;
+		Gizmos.DrawRay(transform.position, dragVector);
+
+//		float dragFactor = -0.0001f;
+//		float howPerpendicular = Mathf.Abs (Vector3.Dot(-rb.velocity, transform.right));
+//		Vector3 dragVector =  dragFactor * howPerpendicular * rb.velocity.sqrMagnitude * transform.right;
+//		rb.AddForce(dragVector);
+	}*/
 
 	void alignWithHill(RaycastHit backHit, float hillPower){
 		Vector3 normalcy = Vector3.Cross(backHit.normal, Vector3.down);

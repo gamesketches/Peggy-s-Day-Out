@@ -35,7 +35,7 @@ public class CamerControl : MonoBehaviour {
 			if(Physics.Raycast(landingRay, out hit, 3f)) {
 				lastRotation = transform.rotation;
 				tempPosition = player.transform.position + offset;
-				if(jump){
+				/*if(jump){
 						jump = false;
 						tempPosition = transform.position;
 						Vector3 blarg = new Vector3(Mathf.PerlinNoise(transform.position.x * 1f, transform.position.x * -0.5f),//transform.position + new Vector3(0, 10, 0);
@@ -51,9 +51,9 @@ public class CamerControl : MonoBehaviour {
 						fraction += Time.deltaTime * .5f;
 						transform.position = Vector3.Lerp(transform.position, tempPosition, fraction);
 					}
-				else{
+				else{*/
 						transform.position = tempPosition;
-					}
+					//}
 			   }
 			// Else lock rotation
 			   else {
@@ -79,6 +79,7 @@ public class CamerControl : MonoBehaviour {
 				intro++;
 				transform.LookAt(player.transform.position);
 				offset = newOffset;
+				lastRotation = transform.rotation;
 			}
 		}
 	else {
